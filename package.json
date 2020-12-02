@@ -1,0 +1,29 @@
+{
+  "name": "adventurers-guide-back-end",
+  "version": "1.0.0",
+  "description": "Api For Outdoor Guides Wiki",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jpcutshall/Adventurers-Guide-Back-End.git"
+  },
+  "author": "Jacob Cutshall",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jpcutshall/Adventurers-Guide-Back-End/issues"
+  },
+  "homepage": "https://github.com/jpcutshall/Adventurers-Guide-Back-End#readme",
+  "dependencies": {
+    "bcrypt": "^5.0.0",
+    "cors": "^2.8.5",
+    "dotenv": "^8.2.0",
+    "express": "^4.17.1",
+    "express-session": "^1.17.1",
+    "method-override": "^3.0.0",
+    "mongoose": "^5.11.0"
+  }
+}

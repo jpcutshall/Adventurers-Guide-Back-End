@@ -1,6 +1,8 @@
 const express = require('express')
 const users = express.Router()
 const bcrypt = require('bcrypt')
+const jwt = require('jsonwebtoken')
+const auth = require('../middleware/auth.js')
 const User = require('../models/users.js')
 
 
@@ -14,16 +16,78 @@ users.get('/', (req, res) => {
 	})
 })
 
-users.post('/', async (req, res) => {
-	req.body.password = bcrypt.hashSync(req.body.password, bcrypt.genSaltSync(10))
-
-	User.create(req.body, (err, createdUser) => {
-		if (err) {
-			res.status(400).json({ error: err.message })
+// REGISTER USER
+users.post('/register', async (req, res) => {
+	try {
+		let { email, password, passwordCheck, username } = req.body
+		// ERROR CHECKING
+		if( !email || !password || !passwordCheck) {
+			return res.status(400).json({msg: "Not all fields have been entered."})
 		}
-		console.log('User Created : ', createdUser)
-		res.status(201).json(createdUser)
-	})
+		if(password.length < 5){
+			return res.status(400).json({msg: "The password needs to be atleast 5 characters long."})
+		}
+		if (password !== passwordCheck) {
+			return res.status(400).json({msg: "Passwords do not match!"})
+		}
+		const existingUser = await User.findOne({email: email })
+		if (existingUser) {
+			return res.status(400).json({msg: "An account with this email already exists"})
+		}
+		if (!username) {
+			username = email
+		}
+
+		// Password HASHING
+		const salt = await bcrypt.genSalt()
+		const passwordHash = await bcrypt.hash(password, salt)
+
+		const newUser = new User({
+			email,
+			password: passwordHash,
+			username
+		})
+		const savedUser = await newUser.save()
+		res.json(savedUser)
+
+	} catch (err) {
+		res.status(500).json({error: err.message})
+	}
+
+})
+
+// LOGIN
+users.post('/login', async (req, res) => {
+	try {
+		const { email, password } = req.body
+
+		if (!email || !password) {
+			return res.status(400).json({ msg: "not all fields have been Entered."})
+		}
+
+		const user = await User.findOne({ email: email})
+		if (!user) {
+			return res.status(400).json({ msg: "No account with this email is registered"})
+		}
+		const isMatch = await bcrypt.compare(password, user.password)
+		if (!isMatch) {
+			return res.status(400).json({ msg: "Invalid email or Password"})
+		}
+
+		// JAV WEB TOKEN
+		const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET)
+		res.json({
+			token,
+			user: {
+				id: user._id,
+				username: user.username,
+				email: user.email
+			}
+		})
+
+	} catch (err) {
+		res.status(500).json({ error: err.message })
+	}
 })
 
 users.get('/:id', (req, res) => {
@@ -36,25 +100,35 @@ users.get('/:id', (req, res) => {
 	})
 })
 
-users.delete('/:id', (req, res) => {
-	User.findByIdAndRemove(req.params.id, (err, deletedUser) => {
-		if (err) {
-			res.status(400).json({ error: err.message })
-		}
-		console.log(`User Deleted : ${deletedUser}`)
+users.delete('/delete', auth, async (req, res) => {
+	try {
+		const deletedUser = await User.findByIdAndDelete(req.user)
 		res.status(200).json(deletedUser)
-	})
+
+	} catch (e) {
+		res.status(500).json({error: e.message})
+	}
 })
 
-users.put('/:id', (req, res) => {
-	req.body.password = bcrypt.hashSync(req.body.password, bcrypt.genSaltSync(10))
-	User.findByIdAndUpdate(req.params.id, req.body, { new: true }, (err, updatedUser) => {
-		if (err) {
-			res.status(400).json({ error: err.message })
+users.post("/tokenIsValid", async (req, res) => {
+	try {
+		const token = req.header("x-auth-token")
+		if(!token){
+			return res.json(false)
 		}
-		console.log(`Updated User : ${updatedUser}`)
-		res.status(200).json(updatedUser)
-	})
+		const verified = jwt.verify(token, process.env.JWT_SECRET)
+		if(!verified){
+			return res.json(false)
+		}
+		const user = await User.findById(verified.id)
+		if(!user){
+			return res.json(false)
+		}
+
+		return res.json(true)
+	} catch (err) {
+		res.status(500).json({ error: err.message })
+	}
 })
 
 module.exports = users

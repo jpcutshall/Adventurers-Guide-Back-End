@@ -90,13 +90,13 @@ users.post('/login', async (req, res) => {
 	}
 })
 
-users.get('/:id', (req, res) => {
-	User.findById(req.params.id, (err, foundUser) => {
-		if (err) {
-			res.status(400).json({ error: err.message })
-		}
-		console.log('Found User : ', foundUser)
-		res.status(200).json(foundUser)
+users.get('/', auth, async (req, res) => {
+	const user = await User.findById(req.user)
+
+	res.json({
+		username: user.username,
+		email: user.email,
+		id: user._id
 	})
 })
 

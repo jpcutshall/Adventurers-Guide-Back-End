@@ -28,8 +28,10 @@ mongoose.set('useCreateIndex', true);
 // CONTROLLERS
 
 const usersController = require('./controllers/usersController.js')
+const postsController = require('./controllers/postsController.js')
 
 app.use('/users', usersController)
+app.use('/posts', postsController)
 
 
 

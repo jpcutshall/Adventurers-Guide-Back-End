@@ -9,6 +9,10 @@ const postSchema = Schema({
 	gtk: String,
 	lat: String,
 	long: String,
-	tags: Array,
+	tags: String
 
-})
+}, { timestamps: { createdAt: 'created_at'}})
+
+const Post = mongoose.model('Post', postSchema)
+
+module.exports = Post

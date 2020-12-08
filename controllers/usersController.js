@@ -74,8 +74,10 @@ users.post('/login', async (req, res) => {
 			return res.status(400).json({ msg: "Invalid email or Password"})
 		}
 
+		
 		// JAV WEB TOKEN
 		const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET)
+		console.log(`Logged in! ${token}`);
 		res.json({
 			token,
 			user: {

@@ -4,12 +4,13 @@ const Schema = mongoose.Schema
 const postSchema = Schema({
 	name: { type: String, required: true, unique: true},
 	about: String,
-	history: String,
+	background: String,
 	camping: String,
 	gtk: String,
 	lat: String,
 	long: String,
-	tags: String
+	tags: String,
+	user: {type: String, ref: 'User'}
 
 }, { timestamps: { createdAt: 'created_at'}})
 

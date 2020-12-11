@@ -76,7 +76,7 @@ users.post('/login', async (req, res) => {
 
 		
 		// JAV WEB TOKEN
-		const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1h'})
+		const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: 60 * 60})
 		console.log(`Logged in! ${token}`);
 		res.json({
 			token,

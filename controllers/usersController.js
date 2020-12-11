@@ -7,13 +7,30 @@ const User = require('../models/users.js')
 
 
 // GET ALL USERS !!! FOR THE ADMIN
-users.get('/', (req, res) => {
-	User.find({}, (err, foundUsers) => {
-		if (err) {
-			res.status(400).json({ error: err.message })
+users.get('/', async (req, res) => {
+	try{
+		console.log(req)
+		const token = req.header("x-auth-token")
+		if(!token){
+			return res.status(400).json({ msg: "missing Token"})
 		}
-		res.status(200).json(foundUsers)
-	})
+		const verified = jwt.verify(token, process.env.JWT_SECRET)
+		if(!verified){
+			return res.status(400).json({msg: "Invalid Token"})
+		}
+		const user = await User.findById(verified.id)
+		if(!user){
+			return res.status(400).json({ msg: "no user found"})
+		}
+
+		res.json({
+			username: user.username,
+			email: user.email,
+			id: user._id
+		})
+	} catch (err) {
+		res.status(500).json({ error: err.message })
+	}
 })
 
 // REGISTER USER
@@ -92,15 +109,7 @@ users.post('/login', async (req, res) => {
 	}
 })
 
-users.get('/', auth, async (req, res) => {
-	const user = await User.findById(req.user)
 
-	res.json({
-		username: user.username,
-		email: user.email,
-		id: user._id
-	})
-})
 
 users.delete('/delete', auth, async (req, res) => {
 	try {

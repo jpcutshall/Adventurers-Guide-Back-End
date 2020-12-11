@@ -52,12 +52,16 @@ posts.post('/', auth, async (req, res) => {
 })
 
 posts.delete('/:id', auth, async (req, res) => {
-    const post = await Post.findOne({_id: req.params.id})
-    if (!post) {
-        return res.status(400).json({ msg: "No Post found with this ID"})
+    try {
+        const post = await Post.findById(req.params.id)
+        if (!post) {
+            return res.status(400).json({ msg: "No Post found with this ID"})
+        }
+        const deletedPost = await Post.findByIdAndDelete(req.params.id)
+        res.json(deletedPost)
+    } catch (err) {
+        res.status(500).json({ msg: err.message })
     }
-    const deletedPost = await Post.FindByIdAndDelete(req.params.id)
-    res.json(deletedPost)
 })
 
 posts.get('/:id', async (req, res) => {
